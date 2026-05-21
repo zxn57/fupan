@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>自我评估复盘系统</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1565C0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="复盘系统">
+  <link rel="apple-touch-icon" href="icon.svg">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ===== CSS 变量 ===== */
+    :root {
+      --bg: #E8F4FD;
+      --card-bg: #FFFFFF;
+      --primary: #1565C0;
+      --primary-light: #E3F2FD;
+      --secondary: #42A5F5;
+      --accent: #FF7043;
+      --success: #66BB6A;
+      --text: #263238;
+      --text-secondary: #607D8B;
+      --divider: #E0E0E0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-hover: 0 4px 16px rgba(0,0,0,0.12);
+      --radius: 12px;
+    }
+
+    /* ===== 全局重置 ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ===== 主容器 ===== */
+    .app-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    /* ===== 头部 ===== */
+    .app-header {
+      text-align: center;
+      padding: 20px 0 8px;
+    }
+    .app-header .logo {
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+    .app-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .app-header .subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ===== 页面容器 ===== */
+    .page {
+      display: none;
+    }
+    .page.active {
+      display: block;
+    }
+
+    /* ===== 卡片 ===== */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    /* ===== 按钮 ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #0D47A1;
+    }
+    .btn-secondary {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    .btn-secondary:hover {
+      background: #BBDEFB;
+    }
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-accent:hover {
+      background: #E64A19;
+    }
+    .btn-block {
+      display: flex;
+      width: 100%;
+    }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 12px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== 表单 ===== */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--divider);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: #FAFAFA;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .form-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23607D8B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    /* ===== 评分控件 ===== */
+    .star-rating {
+      display: flex;
+      gap: 8px;
+    }
+    .star-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--divider);
+      background: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .star-btn:hover {
+      border-color: var(--secondary);
+      transform: scale(1.1);
+    }
+    .star-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: scale(1.1);
+    }
+    .star-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    /* ===== 底部导航 ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid var(--divider);
+      display: flex;
+      justify-content: space-around;
+      height: 60px;
+      z-index: 100;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+      border: none;
+      background: none;
+      font-family: inherit;
+      font-size: 10px;
+      padding: 4px 0;
+    }
+    .nav-item .nav-icon {
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    /* ===== 空状态 ===== */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .empty-state p {
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* ===== 标签 ===== */
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .tag-primary {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    .tag-success {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    .tag-accent {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+
+    /* ===== 提醒横幅 ===== */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-warning {
+      background: #FFF8E1;
+      color: #F57F17;
+      border-left: 4px solid #FFC107;
+    }
+    .alert-info {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-left: 4px solid var(--primary);
+    }
+    .alert-success {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border-left: 4px solid var(--success);
+    }
+
+    /* ===== 统计数字 ===== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .stat-item {
+      background: #F5F9FF;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ===== 进度条 ===== */
+    .progress-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #E8E8E8;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .progress-high { background: var(--success); }
+    .progress-mid { background: var(--secondary); }
+    .progress-low { background: var(--accent); }
+
+    /* ===== 问卷相关 ===== */
+    .question-block {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .question-text {
+      font-size: 14px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .option-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .option-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .radio-group {
+      display: flex;
+      gap: 0;
+    }
+    .radio-group input { display: none; }
+    .radio-group label {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1.5px solid var(--divider);
+      font-size: 13px;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .radio-group label:first-of-type { border-radius: 6px 0 0 6px; }
+    .radio-group label:last-of-type { border-radius: 0 6px 6px 0; }
+    .radio-group input:checked + label {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* ===== 历史列表 ===== */
+    .history-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #F0F0F0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-date {
+      font-weight: 500;
+    }
+    .history-scores {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ===== 图表容器 ===== */
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+    }
+    .chart-wrapper canvas {
+      max-height: 300px;
+    }
+
+    /* ===== 小卡片网格 ===== */
+    .mini-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .mini-card {
+      background: #F5F9FF;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .mini-card .score {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .mini-card .label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ===== MBTI 类型卡片 ===== */
+    .mbti-card {
+      text-align: center;
+    }
+    .mbti-type {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 4px;
+      margin: 8px 0;
+    }
+    .mbti-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ===== AI 对话 ===== */
+    .ai-msg {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    .ai-msg.user {
+      align-items: flex-end;
+    }
+    .ai-msg.assistant {
+      align-items: flex-start;
+    }
+    .ai-msg-content {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .ai-msg.user .ai-msg-content {
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .ai-msg.assistant .ai-msg-content {
+      background: #F5F7FA;
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+    .ai-typing {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+    }
+    .ai-typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: typingBounce 1.4s infinite ease-in-out;
+    }
+    .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ===== 建议列表 ===== */
+    .suggestion-list {
+      list-style: none;
+    }
+    .suggestion-list li {
+      padding: 12px 12px 12px 36px;
+      position: relative;
+      border-bottom: 1px solid #F0F0F0;
+      line-height: 1.5;
+    }
+    .suggestion-list li::before {
+      content: "💡";
+      position: absolute;
+      left: 8px;
+      top: 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 头部 -->
+    <header class="app-header">
+      <div class="logo">🧠</div>
+      <h1>自我评估复盘系统</h1>
+      <p class="subtitle">了解自己 · 改变自己</p>
+    </header>
+
+    <!-- ===== 首页仪表盘 ===== -->
+    <div id="page-dashboard" class="page active">
+      <div class="card">
+        <div class="card-title">📊 能力概览</div>
+        <div class="empty-state" id="dashboard-empty">
+          <div class="empty-icon">📋</div>
+          <p>还没有评估数据</p>
+          <button class="btn btn-primary" onclick="switchTab('assessment')">开始第一次评估</button>
+        </div>
+        <div id="dashboard-data" style="display:none;">
+          <div class="chart-wrapper">
+            <canvas id="dashboard-radar"></canvas>
+          </div>
+          <div class="stat-grid" style="margin-top:12px;">
+            <div class="stat-item">
+              <div class="stat-value" id="dash-best">--</div>
+              <div class="stat-label">最强维度</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="dash-worst">--</div>
+              <div class="stat-label">待提升维度</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="review-reminder">
+        <div class="card-title">✍️ 今日复盘</div>
+        <div id="review-done" style="display:none;" class="alert alert-success">
+          ✅ 今日复盘已完成，太棒了！
+        </div>
+        <div id="review-undone">
+          <div class="alert alert-warning">
+            ⏰ 今天还没有写复盘哦，花 2 分钟记录一下吧
+          </div>
+          <button class="btn btn-accent btn-block" onclick="switchTab('review')">写今日复盘</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 快捷操作</div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="switchTab('assessment')">📋 能力自评</button>
+          <button class="btn btn-secondary" onclick="switchTab('review')">✍️ 每日复盘</button>
+          <button class="btn btn-secondary" onclick="switchTab('charts')">📊 查看趋势</button>
+          <button class="btn btn-secondary" onclick="showPage('mbti')">🧠 MBTI 设置</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💾 数据管理</div>
+        <div class="card-subtitle">定期备份数据，或在不同设备之间迁移</div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="exportData()">📤 导出全部数据</button>
+          <label class="btn btn-secondary" style="cursor:pointer;margin:0;">📥 导入数据
+            <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none;">
+          </label>
+        </div>
+        <div id="import-status" style="font-size:12px;color:var(--text-secondary);margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- ===== MBTI 设置页 ===== -->
+    <div id="page-mbti" class="page">
+      <div class="card">
+        <div class="card-title">🧠 MBTI 人格设置</div>
+        <div class="card-subtitle">选择你的 MBTI 类型，基于荣格八维认知功能进行深度分析</div>
+        <div class="form-group">
+          <label class="form-label">你的 MBTI 类型</label>
+          <select class="form-select" id="mbti-select">
+            <option value="">-- 请选择 --</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="saveMBTI()">保存设置</button>
+      </div>
+      <div id="mbti-info" style="display:none;">
+        <div class="card">
+          <div class="mbti-card">
+            <div class="mbti-type" id="mbti-type-display"></div>
+            <p class="mbti-desc" id="mbti-desc-display"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔍 荣格八维功能栈</div>
+          <div id="mbti-stack-display"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 八维与能力维度的对应</div>
+          <div class="card-subtitle">了解每个认知功能如何影响你的能力表现</div>
+          <div id="mbti-dimension-map"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 能力自评页 ===== -->
+    <div id="page-assessment" class="page">
+      <div id="assessment-intro" class="card">
+        <div class="card-title">📋 能力自评问卷</div>
+        <div class="card-subtitle">共 60 题，涵盖 6 个维度。请根据近期的真实情况诚实作答，每题 1-5 分。</div>
+        <div class="stat-grid" style="margin-bottom:16px;grid-template-columns:repeat(3,1fr);">
+          <div class="stat-item"><span style="font-size:16px;">😌</span><div class="stat-label">情绪管理</div></div>
+          <div class="stat-item"><span style="font-size:16px;">💬</span><div class="stat-label">人际沟通</div></div>
+          <div class="stat-item"><span style="font-size:16px;">🎯</span><div class="stat-label">执行力与自律</div></div>
+          <div class="stat-item"><span style="font-size:16px;">🧠</span><div class="stat-label">学习与认知</div></div>
+          <div class="stat-item"><span style="font-size:16px;">🪞</span><div class="stat-label">自我认知</div></div>
+          <div class="stat-item"><span style="font-size:16px;">🎨</span><div class="stat-label">创造力与审美</div></div>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="startAssessment()">开始评估</button>
+        <div id="last-assessment-info" style="margin-top:12px;font-size:12px;color:var(--text-secondary);"></div>
+      </div>
+
+      <div id="assessment-form" style="display:none;">
+        <div id="questions-container"></div>
+        <div class="btn-group" style="margin-top:16px;">
+          <button class="btn btn-primary btn-block" onclick="submitAssessment()">提交评估</button>
+        </div>
+      </div>
+
+      <div id="assessment-result" style="display:none;">
+        <div class="card">
+          <div class="card-title">📊 评估结果</div>
+          <div class="chart-wrapper">
+            <canvas id="result-radar"></canvas>
+          </div>
+          <div class="mini-card-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr);">
+            <div class="mini-card"><div class="score" style="color:#FF7043;" id="res-emotion">--</div><div class="label">情绪管理</div></div>
+            <div class="mini-card"><div class="score" style="color:#42A5F5;" id="res-communication">--</div><div class="label">人际沟通</div></div>
+            <div class="mini-card"><div class="score" style="color:#66BB6A;" id="res-execution">--</div><div class="label">执行力与自律</div></div>
+            <div class="mini-card"><div class="score" style="color:#1565C0;" id="res-cognition">--</div><div class="label">学习与认知</div></div>
+            <div class="mini-card"><div class="score" style="color:#AB47BC;" id="res-selfaware">--</div><div class="label">自我认知</div></div>
+            <div class="mini-card"><div class="score" style="color:#FFA726;" id="res-creativity">--</div><div class="label">创造力与审美</div></div>
+          </div>
+        </div>
+        <div class="card" id="assessment-suggestions"></div>
+        <button class="btn btn-primary btn-block" onclick="switchTab('dashboard')">返回首页</button>
+      </div>
+    </div>
+
+    <!-- ===== 每日复盘页 ===== -->
+    <div id="page-review" class="page">
+      <div class="card">
+        <div class="card-title">✍️ 每日复盘</div>
+        <div class="card-subtitle" id="review-date"></div>
+        <div id="review-questions"></div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">😊 今天整体心情评分（1-5）</label>
+          <div class="star-rating" id="rating-mood"></div>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="submitReview()">保存复盘</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📜 历史复盘</div>
+        <div id="review-history"></div>
+      </div>
+    </div>
+
+    <!-- ===== 数据图表页 ===== -->
+    <div id="page-charts" class="page">
+      <div class="card">
+        <div class="card-title">📊 能力评估趋势</div>
+        <div class="btn-group" style="margin-bottom:12px;">
+          <button class="btn btn-sm btn-secondary" onclick="setChartRange('all')">全部</button>
+          <button class="btn btn-sm btn-secondary" onclick="setChartRange('3m')">最近3月</button>
+          <button class="btn btn-sm btn-secondary" onclick="setChartRange('1m')">最近1月</button>
+        </div>
+        <div class="chart-wrapper" id="trend-chart-wrapper">
+          <canvas id="trend-chart"></canvas>
+        </div>
+        <div class="empty-state" id="trend-empty">
+          <p>数据不足，至少需要 2 次评估才能生成趋势图</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📝 每日复盘趋势</div>
+        <div class="chart-wrapper" id="review-chart-wrapper">
+          <canvas id="review-chart"></canvas>
+        </div>
+        <div class="empty-state" id="review-trend-empty">
+          <p>暂无复盘数据</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AI 对话页 ===== -->
+    <div id="page-ai" class="page">
+      <div class="card" style="padding:12px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-secondary" onclick="quickPrompt('分析我近期的复盘记录，找出我的行为模式和改进方向')">📝 分析复盘</button>
+          <button class="btn btn-sm btn-secondary" onclick="quickPrompt('根据我的MBTI八维功能和最新评估数据，给我一个深度成长分析')">🔍 深度分析</button>
+          <button class="btn btn-sm btn-secondary" onclick="quickPrompt('我最近在' + (dimLabels[getWeakestDim()]||'某个方面') + '方面比较薄弱，给我一些具体建议')">💡 改善建议</button>
+          <button class="btn btn-sm btn-secondary" onclick="quickPrompt('')">💬 自由提问</button>
+        </div>
+      </div>
+
+      <div class="card" id="ai-chat-container" style="min-height:350px;max-height:60vh;overflow-y:auto;padding:16px;">
+        <div id="ai-messages">
+          <div class="ai-msg assistant">
+            <div class="ai-msg-content">你好！我是你的个人成长助手 🤖<br><br>我可以帮你：<br>• 分析你的每日复盘记录，找出规律<br>• 结合你的 MBTI 荣格八维给出深度解读<br>• 针对评估弱项提供具体行动建议<br>• 回答任何关于自我成长的问题<br><br>请先在右上角设置你的 DeepSeek API Key。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:12px;">
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <textarea id="ai-input" class="form-textarea" placeholder="输入你的问题..." style="min-height:44px;flex:1;" rows="1"></textarea>
+          <button class="btn btn-primary" onclick="sendMessage()" id="ai-send-btn">发送</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <span style="font-size:11px;color:var(--text-secondary);cursor:pointer;" onclick="toggleAPISettings()">⚙️ API Key 设置</span>
+          <span style="font-size:11px;color:var(--text-secondary);cursor:pointer;" onclick="clearChat()">🗑️ 清空对话</span>
+        </div>
+        <div id="api-settings" style="display:none;margin-top:8px;">
+          <div class="form-group">
+            <label class="form-label">DeepSeek API Key</label>
+            <input type="password" class="form-input" id="api-key-input" placeholder="sk-...">
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">
+              前往 <a href="https://platform.deepseek.com" target="_blank" style="color:var(--primary);">platform.deepseek.com</a> 注册获取免费额度，在「API Keys」页面创建 Key
+            </div>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="saveAPIKey()">保存 Key</button>
+          <span id="api-key-status" style="font-size:11px;margin-left:8px;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 评估报告页（评估后跳转） ===== -->
+    <div id="page-report" class="page">
+      <div id="report-content"></div>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('dashboard')" data-tab="dashboard">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('assessment')" data-tab="assessment">
+      <span class="nav-icon">📋</span>
+      <span>评估</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('review')" data-tab="review">
+      <span class="nav-icon">✍️</span>
+      <span>复盘</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('charts')" data-tab="charts">
+      <span class="nav-icon">📊</span>
+      <span>数据</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('ai')" data-tab="ai">
+      <span class="nav-icon">🤖</span>
+      <span>AI</span>
+    </button>
+  </nav>
+
+  <script>
+    /* ===== 页面路由 ===== */
+    const PAGES = ['dashboard', 'mbti', 'assessment', 'review', 'charts', 'report', 'ai'];
+    const TABS = ['dashboard', 'assessment', 'review', 'charts', 'ai'];
+
+    function showPage(id) {
+      PAGES.forEach(p => {
+        const el = document.getElementById('page-' + p);
+        if (el) el.classList.remove('active');
+      });
+      const target = document.getElementById('page-' + id);
+      if (target) target.classList.add('active');
+
+      if (TABS.includes(id)) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const navItem = document.querySelector('[data-tab="' + id + '"]');
+        if (navItem) navItem.classList.add('active');
+      }
+    }
+
+    function switchTab(id) {
+      showPage(id);
+      if (id === 'dashboard') renderDashboard();
+      if (id === 'review') renderReviewPage();
+      if (id === 'charts') renderCharts();
+      if (id === 'assessment') renderAssessmentPage();
+      if (id === 'ai') renderAIPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ===== 工具函数 ===== */
+    function genId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function today() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function fmtDate(d) {
+      const parts = d.split('-');
+      return parts[0] + '年' + parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日';
+    }
+
+    /* ===== 数据存储 ===== */
+    function load(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; }
+    }
+
+    function save(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function getProfile() {
+      return load('profile') || { mbti: '', createdAt: today() };
+    }
+
+    function setProfile(p) {
+      save('profile', p);
+    }
+
+    function getAssessments() {
+      return load('assessments') || [];
+    }
+
+    function addAssessment(a) {
+      const list = getAssessments();
+      list.push(a);
+      save('assessments', list);
+      return list;
+    }
+
+    function getReviews() {
+      return load('reviews') || [];
+    }
+
+    function addReview(r) {
+      const list = getReviews();
+      list.push(r);
+      save('reviews', list);
+      return list;
+    }
+
+    function getSuggestions() {
+      return load('suggestions') || [];
+    }
+
+    function addSuggestion(s) {
+      const list = getSuggestions();
+      list.push(s);
+      save('suggestions', list);
+      return list;
+    }
+
+    /* ===== 数据导出/导入 ===== */
+    function exportData() {
+      const allData = {
+        exportedAt: new Date().toISOString(),
+        profile: getProfile(),
+        assessments: getAssessments(),
+        reviews: getReviews(),
+        suggestions: getSuggestions(),
+        aiChatHistory: load('aiChatHistory') || []
+      };
+
+      const json = JSON.stringify(allData, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '复盘系统备份_' + today() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showImportStatus('✅ 数据已导出！文件：复盘系统备份_' + today() + '.json');
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          // 确认对话框
+          const hasExisting = getAssessments().length > 0 || getReviews().length > 0;
+          let action = 'replace';
+          if (hasExisting) {
+            action = confirm('导入会如何处理现有数据？\n\n点击"确定"=合并（保留旧数据+添加新数据）\n点击"取消"=替换（清空旧数据，只用文件中的数据）') ? 'merge' : 'replace';
+          }
+
+          if (action === 'replace') {
+            save('profile', data.profile || { mbti: '', createdAt: today() });
+            save('assessments', data.assessments || []);
+            save('reviews', data.reviews || []);
+            save('suggestions', data.suggestions || []);
+            save('aiChatHistory', data.aiChatHistory || []);
+          } else {
+            // 合并：保留现有 + 追加新数据（去重）
+            const existingAssessments = getAssessments();
+            const existingReviews = getReviews();
+            const existingSuggestions = getSuggestions();
+            const existingChat = load('aiChatHistory') || [];
+
+            const mergeById = (existing, incoming) => {
+              const ids = new Set(existing.map(x => x.id));
+              const merged = [...existing];
+              (incoming || []).forEach(item => {
+                if (!ids.has(item.id)) { merged.push(item); ids.add(item.id); }
+              });
+              return merged;
+            };
+
+            save('assessments', mergeById(existingAssessments, data.assessments));
+            save('reviews', mergeById(existingReviews, data.reviews));
+            save('suggestions', mergeById(existingSuggestions, data.suggestions));
+            save('aiChatHistory', mergeById(existingChat, data.aiChatHistory));
+
+            // profile: 如果新文件有 MBTI 而本地没有，则采用
+            if (!getProfile().mbti && data.profile?.mbti) {
+              save('profile', data.profile);
+            }
+          }
+
+          const aCount = getAssessments().length;
+          const rCount = getReviews().length;
+          showImportStatus('✅ 导入成功！当前共 ' + aCount + ' 次评估、' + rCount + ' 条复盘');
+
+          // 刷新仪表盘
+          if (document.getElementById('page-dashboard').classList.contains('active')) {
+            renderDashboard();
+          }
+        } catch (err) {
+          showImportStatus('❌ 文件格式错误：' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function showImportStatus(msg) {
+      const el = document.getElementById('import-status');
+      if (el) { el.textContent = msg; setTimeout(() => { el.textContent = ''; }, 8000); }
+    }
+
+    /* ===== 评分组件 ===== */
+    function createStarRating(containerId, onChange) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'star-btn';
+        btn.textContent = i <= 3 ? '⭐' : '🌟';
+        btn.dataset.value = i;
+        btn.onclick = function() {
+          container.querySelectorAll('.star-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          if (onChange) onChange(i);
+        };
+        container.appendChild(btn);
+      }
+    }
+
+    function getStarValue(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return 0;
+      const selected = container.querySelector('.star-btn.selected');
+      return selected ? parseInt(selected.dataset.value) : 0;
+    }
+
+    /* ===== 首页仪表盘 ===== */
+    function renderDashboard() {
+      const profile = getProfile();
+      const assessments = getAssessments();
+      const reviews = getReviews();
+
+      // 能力概览
+      if (assessments.length > 0) {
+        document.getElementById('dashboard-empty').style.display = 'none';
+        document.getElementById('dashboard-data').style.display = 'block';
+        const latest = assessments[assessments.length - 1];
+        const scores = latest.scores;
+        const dims = Object.entries(scores);
+        dims.sort((a, b) => b[1] - a[1]);
+        document.getElementById('dash-best').textContent = dimLabels[dims[0][0]];
+        document.getElementById('dash-worst').textContent = dimLabels[dims[dims.length - 1][0]];
+        renderRadar('dashboard-radar', scores);
+      } else {
+        document.getElementById('dashboard-empty').style.display = 'block';
+        document.getElementById('dashboard-data').style.display = 'none';
+      }
+
+      // 今日复盘状态
+      const todayReview = reviews.find(r => r.date === today());
+      if (todayReview) {
+        document.getElementById('review-done').style.display = 'block';
+        document.getElementById('review-undone').style.display = 'none';
+      } else {
+        document.getElementById('review-done').style.display = 'none';
+        document.getElementById('review-undone').style.display = 'block';
+      }
+
+      // 如果没有MBTI，提醒设置
+      if (!profile.mbti) {
+        const mbtiReminder = document.getElementById('review-reminder');
+        // 不额外提醒，让用户自然发现
+      }
+    }
+
+    /* ===== 雷达图 ===== */
+    let radarInstance = null;
+    let dashboardRadarInstance = null;
+    let trendChartInstance = null;
+    let reviewChartInstance = null;
+
+    const dimLabels = {
+      emotion: '情绪管理',
+      communication: '人际沟通',
+      execution: '执行力与自律',
+      cognition: '学习与认知',
+      selfaware: '自我认知',
+      creativity: '创造力与审美'
+    };
+    const dimOrder = ['emotion', 'communication', 'execution', 'cognition', 'selfaware', 'creativity'];
+    const dimColors = {
+      emotion: '#FF7043',
+      communication: '#42A5F5',
+      execution: '#66BB6A',
+      cognition: '#1565C0',
+      selfaware: '#AB47BC',
+      creativity: '#FFA726'
+    };
+
+    function renderRadar(canvasId, scores) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+
+      const instKey = canvasId === 'dashboard-radar' ? 'dashboardRadarInstance' : 'radarInstance';
+      if (window[instKey]) window[instKey].destroy();
+
+      window[instKey] = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: dimOrder.map(d => dimLabels[d]),
+          datasets: [{
+            label: '能力得分',
+            data: dimOrder.map(d => scores[d] || 0),
+            backgroundColor: 'rgba(21, 101, 192, 0.15)',
+            borderColor: '#1565C0',
+            borderWidth: 2,
+            pointBackgroundColor: '#1565C0',
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              ticks: { display: false, stepSize: 20 },
+              pointLabels: { font: { size: 12 } }
+            }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    /* ===== 评估问卷 ===== */
+    const questions = [
+      // 情绪管理 (emotion) - 10题
+      { dim: 'emotion', text: '遇到突发状况时，我能保持冷静，不慌乱' },
+      { dim: 'emotion', text: '我能快速从负面情绪（焦虑、沮丧、愤怒）中恢复' },
+      { dim: 'emotion', text: '面对压力时，我有自己有效的应对和调节方法' },
+      { dim: 'emotion', text: '我很少因为小事情绪波动，整体情绪比较稳定' },
+      { dim: 'emotion', text: '我能清晰地识别和命名自己当下的情绪状态' },
+      { dim: 'emotion', text: '生气或沮丧时，我不会把情绪发泄到身边人身上' },
+      { dim: 'emotion', text: '我有规律的方式（运动、冥想、爱好等）来调节情绪' },
+      { dim: 'emotion', text: '面对批评和否定，我能理性接受，不过度防御' },
+      { dim: 'emotion', text: '我能平衡工作/学习和生活，不让自己长期处于焦虑' },
+      { dim: 'emotion', text: '失败或受挫后，我能较快调整心态，重新开始' },
+
+      // 人际沟通 (communication) - 10题
+      { dim: 'communication', text: '我能清晰、有条理地表达自己的想法和观点' },
+      { dim: 'communication', text: '在群体讨论或会议中，我敢于表达自己的意见' },
+      { dim: 'communication', text: '我能耐心倾听他人，不急于打断或反驳' },
+      { dim: 'communication', text: '与他人意见不合时，我能心平气和地沟通解决' },
+      { dim: 'communication', text: '我能敏锐察觉他人的情绪变化，做出适当回应' },
+      { dim: 'communication', text: '遇到困难时，我愿意主动向他人寻求帮助' },
+      { dim: 'communication', text: '我能自然地与陌生人展开交流，不感到过度紧张' },
+      { dim: 'communication', text: '我会主动维护和朋友、家人、同事的关系' },
+      { dim: 'communication', text: '在团队合作中，我能协调不同意见，促进共识' },
+      { dim: 'communication', text: '需要时我能进行"艰难对话"（如拒绝、提意见、道歉）' },
+
+      // 执行力与自律 (execution) - 10题
+      { dim: 'execution', text: '制定了计划后，我通常能按照计划推进执行' },
+      { dim: 'execution', text: '即使没有外部监督，我也能自律地完成该做的事' },
+      { dim: 'execution', text: '我不会经常拖延重要的事情，能及时行动' },
+      { dim: 'execution', text: '我能合理安排时间，在多项任务中高效切换' },
+      { dim: 'execution', text: '面对困难和挑战时，我会迎难而上而不是逃避' },
+      { dim: 'execution', text: '我能坚持长期目标，不被短期诱惑轻易带偏' },
+      { dim: 'execution', text: '我的生活作息比较规律，饮食和睡眠有基本节制' },
+      { dim: 'execution', text: '我能在有干扰的环境中保持专注，完成任务' },
+      { dim: 'execution', text: '我会定期检查自己的进度，及时调整计划' },
+      { dim: 'execution', text: '一旦对他人或自己做出承诺，我会尽全力兑现' },
+
+      // 学习与认知 (cognition) - 10题
+      { dim: 'cognition', text: '学习新知识时，我能快速抓住核心要点' },
+      { dim: 'cognition', text: '我有适合自己的学习方法，整体学习效率较高' },
+      { dim: 'cognition', text: '面对复杂问题时，我善于将大问题拆解成小步骤' },
+      { dim: 'cognition', text: '我能保持较长时间的专注学习（1-2小时以上）' },
+      { dim: 'cognition', text: '我善于对学到的知识进行总结归纳和整理' },
+      { dim: 'cognition', text: '我能将学到的理论知识灵活应用到实际问题中' },
+      { dim: 'cognition', text: '我会主动保持定期学习新知识、新技能的习惯' },
+      { dim: 'cognition', text: '我看问题能从多个角度思考，不局限于单一视角' },
+      { dim: 'cognition', text: '遇到不懂的问题，我会主动查资料或请教他人' },
+      { dim: 'cognition', text: '我能开放地接受新的观点和信息，更新自己的认知' },
+
+      // 自我认知 (selfaware) - 10题
+      { dim: 'selfaware', text: '我能比较客观地评价自己的优点和缺点' },
+      { dim: 'selfaware', text: '我能察觉到自己行为背后的真实动机和原因' },
+      { dim: 'selfaware', text: '做决定时，我很清楚自己为什么选择A而不是B' },
+      { dim: 'selfaware', text: '他人对我的反馈和评价，与我对自己认知基本一致' },
+      { dim: 'selfaware', text: '我能意识到自己在不同场合下的行为模式变化' },
+      { dim: 'selfaware', text: '当我的表现不如预期时，我能诚实面对而不自欺' },
+      { dim: 'selfaware', text: '我会主动反思自己的价值观和人生目标' },
+      { dim: 'selfaware', text: '我能感受到自己的成长和变化，并说出具体在哪里变了' },
+      { dim: 'selfaware', text: '面对内心的矛盾和冲突，我愿意正视并思考' },
+      { dim: 'selfaware', text: '我对"我是谁"和"我想成为什么样的人"有比较清晰的认识' },
+
+      // 创造力与审美 (creativity) - 10题
+      { dim: 'creativity', text: '面对问题，我经常能想出不止一种解决方案' },
+      { dim: 'creativity', text: '我会主动寻找新的体验和视角来打破常规思维' },
+      { dim: 'creativity', text: '我对美的事物（设计、艺术、自然、文字等）有较强的感受力' },
+      { dim: 'creativity', text: '我享受创造的过程，无论是写作、绘画、手工还是策划' },
+      { dim: 'creativity', text: '我敢于提出和别人不一样的想法，不怕被否定' },
+      { dim: 'creativity', text: '我能把看似不相关的事物联系起来，产生新的灵感' },
+      { dim: 'creativity', text: '我对自己的审美品味有信心，知道自己喜欢什么' },
+      { dim: 'creativity', text: '我会花时间去欣赏和体验美的事物（音乐、展览、自然等）' },
+      { dim: 'creativity', text: '即使资源有限，我也能找到创新的方式达成目标' },
+      { dim: 'creativity', text: '我相信创造力是可以培养的，并会有意识地去锻炼它' }
+    ];
+
+    function renderAssessmentPage() {
+      const assessments = getAssessments();
+      const infoEl = document.getElementById('last-assessment-info');
+      if (assessments.length > 0) {
+        const last = assessments[assessments.length - 1];
+        infoEl.textContent = '上次评估：' + fmtDate(last.date) + '（共 ' + assessments.length + ' 次）';
+      } else {
+        infoEl.textContent = '尚未做过评估';
+      }
+      document.getElementById('assessment-intro').style.display = 'block';
+      document.getElementById('assessment-form').style.display = 'none';
+      document.getElementById('assessment-result').style.display = 'none';
+    }
+
+    function startAssessment() {
+      document.getElementById('assessment-intro').style.display = 'none';
+      document.getElementById('assessment-result').style.display = 'none';
+      const form = document.getElementById('assessment-form');
+      form.style.display = 'block';
+
+      let html = '<div class="card"><div class="card-title">📋 请认真作答（1=完全不符合，5=完全符合）</div></div>';
+      const dimNames = { emotion: '😌 情绪管理', communication: '💬 人际沟通', execution: '🎯 执行力与自律', cognition: '🧠 学习与认知', selfaware: '🪞 自我认知', creativity: '🎨 创造力与审美' };
+      let currentDim = '';
+
+      questions.forEach((q, i) => {
+        if (q.dim !== currentDim) {
+          currentDim = q.dim;
+          html += '<div class="card" style="margin-top:12px;"><div class="card-title">' + dimNames[currentDim] + '</div>';
+        }
+        html += '<div class="question-block">';
+        html += '<div class="question-text"><strong>' + (i + 1) + '.</strong> ' + q.text + '</div>';
+        html += '<div class="radio-group">';
+        for (let v = 1; v <= 5; v++) {
+          html += '<input type="radio" name="q' + i + '" id="q' + i + '_' + v + '" value="' + v + '">';
+          html += '<label for="q' + i + '_' + v + '">' + v + '</label>';
+        }
+        html += '</div>';
+        html += '<div class="option-labels"><span>完全不符合</span><span>完全符合</span></div>';
+        html += '</div>';
+      });
+      html += '</div>'; // close last card
+
+      document.getElementById('questions-container').innerHTML = html;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function submitAssessment() {
+      // 检查所有题目是否都已作答
+      const answers = [];
+      let allAnswered = true;
+      questions.forEach((q, i) => {
+        const selected = document.querySelector('input[name="q' + i + '"]:checked');
+        if (selected) {
+          answers.push(parseInt(selected.value));
+        } else {
+          allAnswered = false;
+        }
+      });
+
+      if (!allAnswered) {
+        alert('请回答所有题目后再提交');
+        return;
+      }
+
+      // 计算各维度得分
+      const dimScores = { emotion: [], communication: [], execution: [], cognition: [], selfaware: [], creativity: [] };
+      questions.forEach((q, i) => {
+        dimScores[q.dim].push(answers[i]);
+      });
+
+      const scores = {};
+      for (const dim of dimOrder) {
+        const raw = dimScores[dim].reduce((a, b) => a + b, 0);
+        scores[dim] = Math.round((raw - 10) / 40 * 100);
+      }
+
+      // 保存
+      const assessment = {
+        id: genId(),
+        date: today(),
+        scores: scores,
+        answers: answers
+      };
+      addAssessment(assessment);
+
+      // 生成建议
+      const suggestionItems = generateSuggestions(scores, getProfile().mbti);
+      const suggestion = {
+        id: genId(),
+        date: today(),
+        assessmentId: assessment.id,
+        items: suggestionItems
+      };
+      addSuggestion(suggestion);
+
+      // 显示结果
+      showAssessmentResult(scores, suggestionItems);
+    }
+
+    function showAssessmentResult(scores, suggestionItems) {
+      document.getElementById('assessment-form').style.display = 'none';
+      const resultDiv = document.getElementById('assessment-result');
+      resultDiv.style.display = 'block';
+
+      document.getElementById('res-emotion').textContent = scores.emotion;
+      document.getElementById('res-communication').textContent = scores.communication;
+      document.getElementById('res-execution').textContent = scores.execution;
+      document.getElementById('res-cognition').textContent = scores.cognition;
+      document.getElementById('res-selfaware').textContent = scores.selfaware;
+      document.getElementById('res-creativity').textContent = scores.creativity;
+
+      renderRadar('result-radar', scores);
+
+      let sugHtml = '<div class="card-title">💡 行动建议</div><ul class="suggestion-list">';
+      suggestionItems.forEach(s => {
+        sugHtml += '<li>' + s + '</li>';
+      });
+      sugHtml += '</ul>';
+      document.getElementById('assessment-suggestions').innerHTML = sugHtml;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ===== 建议生成引擎 ===== */
+    /* ===== 荣格八维认知功能 ===== */
+    const cognitiveFunctions = {
+      Ni: { name: '内倾直觉', symbol: 'Ni', desc: '洞察事物本质和未来走向，擅长抽象归纳与深层洞见。Ni 主导者往往能"直接看到"问题的核心，但过程难以用语言解释。', strength: '长远规划、战略思维、看透本质', weakness: '脱离现实细节、对当下感知迟钝' },
+      Ne: { name: '外倾直觉', symbol: 'Ne', desc: '发散联想，发现事物之间的隐藏联系和各种可能性。Ne 主导者思维跳跃，创意丰富，善于头脑风暴。', strength: '创意联想、发现机会、灵活应变', weakness: '难以聚焦、容易分心、缺乏持续性' },
+      Si: { name: '内倾感觉', symbol: 'Si', desc: '存储和调用过去的经验与细节，形成稳定的内在参照系。Si 主导者可靠细致，善于维护传统和既有秩序。', strength: '细节记忆、稳定可靠、经验丰富', weakness: '抗拒变化、过于保守、沉溺过去' },
+      Se: { name: '外倾感觉', symbol: 'Se', desc: '敏锐感知当下环境的变化，快速做出反应。Se 主导者活在当下，享受感官体验，动手能力强。', strength: '行动迅速、观察敏锐、享受当下', weakness: '缺乏长远规划、冲动行事、忽视抽象' },
+      Ti: { name: '内倾思考', symbol: 'Ti', desc: '构建内在逻辑体系，追求精确分类和原理性理解。Ti 主导者善于分析、拆解问题，重视逻辑一致性。', strength: '逻辑严谨、独立思考、深入分析', weakness: '忽视人际关系、过度分析导致拖延' },
+      Te: { name: '外倾思考', symbol: 'Te', desc: '高效组织和执行，追求外部世界的效率和秩序。Te 主导者目标明确，善于管理资源和团队。', strength: '高效执行、组织管理、决断力强', weakness: '过于强势、忽视个体感受、急于求成' },
+      Fi: { name: '内倾情感', symbol: 'Fi', desc: '基于内在价值观做出判断，追求真实和一致性。Fi 主导者忠于自我，情感深沉，有强烈的善恶标准。', strength: '真诚一致、价值观清晰、同理心深', weakness: '过度主观、难以妥协、不善表达' },
+      Fe: { name: '外倾情感', symbol: 'Fe', desc: '关注群体和谐与他人感受，追求人际关系的温暖和共识。Fe 主导者善于共情，乐于助人，能营造舒适的氛围。', strength: '人际和谐、共情关怀、团队凝聚', weakness: '过度迎合、回避冲突、依赖他人认可' }
+    };
+
+    const mbtiStacks = {
+      INTJ: { dominant: 'Ni', auxiliary: 'Te', tertiary: 'Fi', inferior: 'Se' },
+      INTP: { dominant: 'Ti', auxiliary: 'Ne', tertiary: 'Si', inferior: 'Fe' },
+      ENTJ: { dominant: 'Te', auxiliary: 'Ni', tertiary: 'Se', inferior: 'Fi' },
+      ENTP: { dominant: 'Ne', auxiliary: 'Ti', tertiary: 'Fe', inferior: 'Si' },
+      INFJ: { dominant: 'Ni', auxiliary: 'Fe', tertiary: 'Ti', inferior: 'Se' },
+      INFP: { dominant: 'Fi', auxiliary: 'Ne', tertiary: 'Si', inferior: 'Te' },
+      ENFJ: { dominant: 'Fe', auxiliary: 'Ni', tertiary: 'Se', inferior: 'Ti' },
+      ENFP: { dominant: 'Ne', auxiliary: 'Fi', tertiary: 'Te', inferior: 'Si' },
+      ISTJ: { dominant: 'Si', auxiliary: 'Te', tertiary: 'Fi', inferior: 'Ne' },
+      ISFJ: { dominant: 'Si', auxiliary: 'Fe', tertiary: 'Ti', inferior: 'Ne' },
+      ESTJ: { dominant: 'Te', auxiliary: 'Si', tertiary: 'Ne', inferior: 'Fi' },
+      ESFJ: { dominant: 'Fe', auxiliary: 'Si', tertiary: 'Ne', inferior: 'Ti' },
+      ISTP: { dominant: 'Ti', auxiliary: 'Se', tertiary: 'Ni', inferior: 'Fe' },
+      ISFP: { dominant: 'Fi', auxiliary: 'Se', tertiary: 'Ni', inferior: 'Te' },
+      ESTP: { dominant: 'Se', auxiliary: 'Ti', tertiary: 'Fe', inferior: 'Ni' },
+      ESFP: { dominant: 'Se', auxiliary: 'Fi', tertiary: 'Te', inferior: 'Ni' }
+    };
+
+    const stackLevelNames = ['主导功能', '辅助功能', '第三功能', '劣势功能'];
+
+    /* ===== MBTI 16类型简单描述 ===== */
+    const mbtiProfiles = {
+      'INTJ': { name: '建筑师', strengths: '战略思维、独立、果断', blindspots: '社交表达、情感共情、灵活性', desc: '理性独立思考者，善于长远规划和系统分析，但可能在人际互动和情绪表达上需要更多关注。' },
+      'INTP': { name: '逻辑学家', strengths: '逻辑分析、创造力、求知欲', blindspots: '执行力、社交技巧、情感表达', desc: '热爱探索理论和思想，逻辑能力强，但可能拖延执行，在社交场合感到不自在。' },
+      'ENTJ': { name: '指挥官', strengths: '领导力、决断力、战略规划', blindspots: '耐心、情感细腻度、倾听', desc: '天生领导者，目标导向，善于组织和管理，但可能过于强势，忽略他人感受。' },
+      'ENTP': { name: '辩论家', strengths: '创新思维、口才、适应力', blindspots: '坚持力、细节执行、情感专注', desc: '思维敏捷，善于辩论和创新，但可能缺乏持续性，对日常重复事务感到厌倦。' },
+      'INFJ': { name: '提倡者', strengths: '洞察力、同理心、理想主义', blindspots: '过度敏感、完美主义、难以拒绝', desc: '深刻富有同理心，能洞察他人需求，但可能因过度追求完美而感到压力。' },
+      'INFP': { name: '调停者', strengths: '创造力、同理心、价值观驱动', blindspots: '执行力、现实感、自我推销', desc: '理想主义者，忠于内心价值观，但可能在实际执行和现实面对上感到困难。' },
+      'ENFJ': { name: '主人公', strengths: '感染力、同理心、领导力', blindspots: '过度承担责任、忽视自我、接受批评', desc: '富有魅力的领导者，关心他人成长，但可能过度承担他人问题而忽略自己。' },
+      'ENFP': { name: '竞选者', strengths: '热情、创造力、社交能力', blindspots: '专注力、执行力、条理性', desc: '充满热情和创造力，善于与人连接，但可能缺乏条理，容易分散注意力。' },
+      'ISTJ': { name: '物流师', strengths: '可靠、细致、务实', blindspots: '灵活性、创新、情感表达', desc: '踏实可靠的执行者，做事有条理，但可能过于保守，抗拒变化。' },
+      'ISFJ': { name: '守护者', strengths: '可靠、体贴、细心', blindspots: '拒绝改变、不表达需求、过度付出', desc: '温暖细心的守护者，默默付出，但可能不善表达自己的需求和感受。' },
+      'ESTJ': { name: '总经理', strengths: '组织力、决断力、责任感', blindspots: '灵活性、同理心、开放性', desc: '高效的组织者和管理者，重视规则和效率，但可能显得过于严厉和僵化。' },
+      'ESFJ': { name: '执政官', strengths: '社交、关怀、责任感', blindspots: '过度迎合、回避冲突、依赖认可', desc: '热心体贴的社交者，注重和谐关系，但可能过于在意他人看法而忽视自己。' },
+      'ISTP': { name: '鉴赏家', strengths: '动手能力、冷静、实用主义', blindspots: '情感表达、长期规划、人际深度', desc: '冷静务实的问题解决者，善于动手操作，但可能在情感交流和长期规划上不足。' },
+      'ISFP': { name: '探险家', strengths: '艺术感、适应力、温和', blindspots: '规划能力、冲突处理、长期坚持', desc: '温和感性的艺术家型，活在当下，但可能在长远规划和面对冲突时需要提升。' },
+      'ESTP': { name: '企业家', strengths: '行动力、应变力、社交', blindspots: '耐心、深度思考、风险意识', desc: '精力充沛的行动派，擅长随机应变，但可能缺乏耐心和长远规划。' },
+      'ESFP': { name: '表演者', strengths: '社交魅力、乐观、适应力', blindspots: '自律性、深度、长期规划', desc: '天生的表演者，热情乐观感染他人，但可能在自律和深度思考方面需要加强。' }
+    };
+
+    function generateSuggestions(scores, mbti) {
+      const items = [];
+      const stack = mbtiStacks[mbti] || null;
+
+      // 找最弱和最强维度
+      const sorted = dimOrder.slice().sort((a, b) => scores[a] - scores[b]);
+      const weakest = sorted[0];
+      const secondWeak = sorted[1];
+      const strongest = sorted[sorted.length - 1];
+
+      // 针对最弱维度给出建议
+      const weakAdvice = {
+        emotion: [
+          '每天花5分钟做深呼吸练习，关注当下的身体感受',
+          '准备一个"情绪急救清单"：列出沮丧时能让你平静的3件事',
+          '记录情绪日记，每天用3个词描述今日主要情绪'
+        ],
+        communication: [
+          '本周主动发起一次深度对话，练习表达一个你通常回避的话题',
+          '练习"三明治反馈法"：肯定→建议→鼓励，在与他人交流中使用',
+          '每天记录一次成功的沟通和一个可以改进的地方'
+        ],
+        execution: [
+          '使用"番茄工作法"：25分钟专注+5分钟休息，每天完成4个番茄钟',
+          '每天早上列出今天最重要的3件事（MIT），先完成它们再做其他事',
+          '建立"如果-就"计划：如果[情景]，就[行动]，提前预设应对方案'
+        ],
+        cognition: [
+          '每天阅读30分钟，做3行笔记总结',
+          '尝试"费曼学习法"：用最简单的语言解释一个刚学的概念',
+          '每周学一个与主业无关的小技能，训练大脑的灵活性'
+        ],
+        selfaware: [
+          '每天睡前花3分钟自问：今天我做了什么？为什么这样做？感觉如何？',
+          '让一位信任的朋友或家人给你一个真实的反馈，对照你的自我认知',
+          '写下你的5个核心价值观，然后回顾你最近的决定是否和它们一致'
+        ],
+        creativity: [
+          '每天记录3个你注意到的新事物或有趣想法，不论大小',
+          '每周尝试做一件从未做过的事（走新路线、吃新食物、学新技能）',
+          '给自己设定一个"创意挑战"：用有限的条件解决一个日常问题'
+        ]
+      };
+
+      items.push('【重点关注】' + dimLabels[weakest] + '是你的得分最低项（' + scores[weakest] + '分），建议：' + weakAdvice[weakest][0]);
+      items.push('【次要注意】' + dimLabels[secondWeak] + '也偏低（' + scores[secondWeak] + '分），可以一起关注。');
+
+      // 荣格八维分析
+      if (stack) {
+        const dimFuncMap = {
+          '情绪管理': ['Fi', 'Fe'],
+          '人际沟通': ['Fe', 'Ne'],
+          '执行力与自律': ['Te', 'Si'],
+          '学习与认知': ['Ti', 'Ni'],
+          '自我认知': ['Fi', 'Ni'],
+          '创造力与审美': ['Ne', 'Se']
+        };
+
+        // 分析最弱维度对应的功能
+        const relatedFuncs = dimFuncMap[dimLabels[weakest]] || [];
+        const stackLevels = ['dominant', 'auxiliary', 'tertiary', 'inferior'];
+        const levelNames = ['主导', '辅助', '第三', '劣势'];
+
+        // 检查相关功能在功能栈中的位置
+        let eightAnalysis = '';
+        relatedFuncs.forEach(fKey => {
+          let position = '';
+          stackLevels.forEach((lvl, i) => {
+            if (stack[lvl] === fKey) position = levelNames[i] + '功能';
+          });
+          const func = cognitiveFunctions[fKey];
+          if (position) {
+            eightAnalysis += func.name + '（' + fKey + '）是你的' + position + '，';
+            if (position === '劣势功能') {
+              eightAnalysis += '这是你最需要刻意发展的功能，当前' + dimLabels[weakest] + '分数偏低是正常的。建议有意识地在日常生活中创造使用' + func.name + '的机会。';
+            } else if (position === '第三功能') {
+              eightAnalysis += '这个功能正在发展中，还不太稳定，需要更多练习和关注。';
+            } else {
+              eightAnalysis += '这个功能你应该比较擅长，分数低可能反映了近期的状态波动而非能力不足。';
+            }
+          } else {
+            eightAnalysis += func.name + '（' + fKey + '）不在你的主要功能栈中，需要借助其他功能来弥补。';
+          }
+        });
+
+        if (eightAnalysis) {
+          items.push('【荣格八维分析】' + eightAnalysis);
+        }
+
+        // 劣势功能特别提醒
+        const inferiorKey = stack.inferior;
+        const inferiorFunc = cognitiveFunctions[inferiorKey];
+        items.push('【发展建议】你的劣势功能是' + inferiorFunc.name + '（' + inferiorKey + '），这是你最需要刻意练习的功能。' + inferiorFunc.weakness + '。建议每周留出专门时间练习与' + inferiorFunc.name + '相关的活动。');
+
+        // 优势功能与最强维度的关联
+        const strongFuncs = [stack.dominant, stack.auxiliary];
+        items.push('【善用优势】你的' + cognitiveFunctions[strongFuncs[0]].name + '（主导）和' + cognitiveFunctions[strongFuncs[1]].name + '（辅助）是核心优势。在改善弱项时，可以思考如何用这些优势功能来"助攻"。');
+      } else {
+        items.push('💡 提示：设置你的 MBTI 类型可以获得基于荣格八维的深度分析。');
+      }
+
+      // 最强维度
+      items.push('【保持优势】' + dimLabels[strongest] + '是你的最强项（' + scores[strongest] + '分），继续保持！可以考虑将这方面的能力转化为帮助他人的资源。');
+
+      return items;
+    }
+
+    /* ===== 每日复盘 ===== */
+    const reviewQuestions = [
+      { layer: '情绪', q: '今天主要的情绪状态是什么？（如开心、焦虑、平静、疲惫等）' },
+      { layer: '情绪', q: '什么事件或想法引发了这些情绪？' },
+      { layer: '行动', q: '今天最有成就感的一件事是什么？' },
+      { layer: '行动', q: '今天遇到了什么困难？你是如何应对的？' },
+      { layer: '行动', q: '今天有什么事情是你拖延了的？为什么？' },
+      { layer: '成长', q: '今天学到了什么新东西或有什么新感悟？' },
+      { layer: '成长', q: '如果可以重来，今天你会做出什么不同的选择？' },
+      { layer: '关系', q: '今天和谁有过有意义的互动？感觉如何？' },
+      { layer: '规划', q: '明天最重要的三件事是什么？' }
+    ];
+
+    function renderReviewPage() {
+      document.getElementById('review-date').textContent = '📅 ' + fmtDate(today());
+
+      // 生成引导问题
+      let qHtml = '';
+      let currentLayer = '';
+      reviewQuestions.forEach((item, i) => {
+        if (item.layer !== currentLayer) {
+          currentLayer = item.layer;
+          const layerIcons = { '情绪': '😌', '行动': '🎯', '成长': '🌱', '关系': '🤝', '规划': '📅' };
+          qHtml += '<div style="margin-top:16px;font-weight:600;font-size:14px;color:var(--primary);">' + (layerIcons[currentLayer] || '') + ' ' + currentLayer + '层</div>';
+        }
+        qHtml += '<div class="form-group" style="margin-top:8px;">';
+        qHtml += '<label class="form-label">' + (i + 1) + '. ' + item.q + '</label>';
+        qHtml += '<textarea class="form-textarea review-answer" data-qindex="' + i + '" placeholder="写下你的想法..." style="min-height:50px;"></textarea>';
+        qHtml += '</div>';
+      });
+      document.getElementById('review-questions').innerHTML = qHtml;
+
+      // 初始化心情评分
+      createStarRating('rating-mood');
+
+      // 加载历史
+      renderReviewHistory();
+
+      // 检查今日是否已复盘，回填
+      const reviews = getReviews();
+      const todayReview = reviews.find(r => r.date === today());
+      if (todayReview) {
+        if (todayReview.mood) selectStar('rating-mood', todayReview.mood);
+        if (todayReview.answers) {
+          todayReview.answers.forEach((a, i) => {
+            const ta = document.querySelector('.review-answer[data-qindex="' + i + '"]');
+            if (ta) ta.value = a.answer || '';
+          });
+        }
+      } else {
+        document.querySelectorAll('.review-answer').forEach(ta => ta.value = '');
+        document.querySelectorAll('#rating-mood .star-btn').forEach(b => b.classList.remove('selected'));
+      }
+    }
+
+    function selectStar(containerId, value) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.querySelectorAll('.star-btn').forEach(b => {
+        b.classList.remove('selected');
+        if (parseInt(b.dataset.value) === value) b.classList.add('selected');
+      });
+    }
+
+    function submitReview() {
+      const mood = getStarValue('rating-mood');
+      if (!mood) {
+        alert('请给今天的心情评分');
+        return;
+      }
+
+      const answers = [];
+      const textareas = document.querySelectorAll('.review-answer');
+      let hasContent = false;
+      textareas.forEach((ta, i) => {
+        const val = ta.value.trim();
+        if (val) hasContent = true;
+        answers.push({ layer: reviewQuestions[i].layer, question: reviewQuestions[i].q, answer: val });
+      });
+
+      if (!hasContent) {
+        alert('请至少回答一个问题');
+        return;
+      }
+
+      const reviews = getReviews();
+      const existingIdx = reviews.findIndex(r => r.date === today());
+
+      const review = {
+        id: existingIdx >= 0 ? reviews[existingIdx].id : genId(),
+        date: today(),
+        mood: mood,
+        answers: answers
+      };
+
+      if (existingIdx >= 0) {
+        reviews[existingIdx] = review;
+      } else {
+        reviews.push(review);
+      }
+      save('reviews', reviews);
+
+      alert('复盘保存成功！');
+      renderReviewHistory();
+      switchTab('dashboard');
+    }
+
+    function renderReviewHistory() {
+      const reviews = getReviews();
+      const container = document.getElementById('review-history');
+
+      if (reviews.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>还没有复盘记录</p></div>';
+        return;
+      }
+
+      const sorted = [...reviews].reverse();
+      let html = '';
+      sorted.forEach(r => {
+        const answeredCount = (r.answers || []).filter(a => a.answer).length;
+        const preview = (r.answers || []).find(a => a.answer)?.answer || '';
+        html += '<div class="history-item">';
+        html += '<div>';
+        html += '<div class="history-date">' + fmtDate(r.date) + ' 😊' + (r.mood || '?') + '</div>';
+        html += '<div style="font-size:12px;color:var(--text-secondary);">回答了 ' + answeredCount + '/' + reviewQuestions.length + ' 个问题</div>';
+        html += '<div style="font-size:12px;color:var(--text-secondary);">' + preview.slice(0, 50) + (preview.length > 50 ? '...' : '') + '</div>';
+        html += '</div></div>';
+      });
+      container.innerHTML = html;
+    }
+
+    /* ===== 数据图表 ===== */
+    let chartRange = 'all';
+
+    function setChartRange(range) {
+      chartRange = range;
+      renderCharts();
+    }
+
+    function renderCharts() {
+      renderTrendChart();
+      renderReviewChart();
+    }
+
+    function filterByRange(data, range) {
+      const now = new Date();
+      let cutoff;
+      if (range === '1m') cutoff = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      else if (range === '3m') cutoff = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      else return data;
+      return data.filter(d => new Date(d.date) >= cutoff);
+    }
+
+    function renderTrendChart() {
+      const assessments = filterByRange(getAssessments(), chartRange);
+      const wrapper = document.getElementById('trend-chart-wrapper');
+      const empty = document.getElementById('trend-empty');
+      const ctx = document.getElementById('trend-chart');
+
+      if (assessments.length < 2) {
+        wrapper.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      wrapper.style.display = 'block';
+      empty.style.display = 'none';
+
+      if (trendChartInstance) trendChartInstance.destroy();
+
+      trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: assessments.map(a => a.date.slice(5)),
+          datasets: dimOrder.map(dim => ({
+            label: dimLabels[dim],
+            data: assessments.map(a => a.scores[dim] || 0),
+            borderColor: dimColors[dim],
+            backgroundColor: dimColors[dim] + '20',
+            tension: 0.3,
+            fill: false,
+            pointRadius: 4,
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: { min: 0, max: 100, ticks: { callback: v => v + '分' } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function renderReviewChart() {
+      const reviews = getReviews();
+      const wrapper = document.getElementById('review-chart-wrapper');
+      const empty = document.getElementById('review-trend-empty');
+      const ctx = document.getElementById('review-chart');
+
+      if (reviews.length < 2) {
+        wrapper.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      wrapper.style.display = 'block';
+      empty.style.display = 'none';
+
+      if (reviewChartInstance) reviewChartInstance.destroy();
+
+      reviewChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: reviews.map(r => r.date.slice(5)),
+          datasets: [{
+            label: '每日心情',
+            data: reviews.map(r => r.mood || 0),
+            borderColor: '#FF7043',
+            backgroundColor: 'rgba(255, 112, 67, 0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: { min: 0, max: 5, ticks: { stepSize: 1, callback: v => v + '分' } }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    /* ===== MBTI 设置 ===== */
+    function renderMBTIPage() {
+      const select = document.getElementById('mbti-select');
+      if (select.options.length <= 1) {
+        Object.keys(mbtiProfiles).forEach(type => {
+          const opt = document.createElement('option');
+          opt.value = type;
+          opt.textContent = type + ' — ' + mbtiProfiles[type].name;
+          select.appendChild(opt);
+        });
+      }
+      const profile = getProfile();
+      if (profile.mbti) {
+        select.value = profile.mbti;
+        showMBTIInfo(profile.mbti);
+      }
+    }
+
+    function showMBTIInfo(type) {
+      const info = mbtiProfiles[type];
+      const stack = mbtiStacks[type];
+      if (!info || !stack) return;
+
+      document.getElementById('mbti-info').style.display = 'block';
+
+      // 基本信息
+      document.getElementById('mbti-type-display').textContent = type + ' — ' + info.name;
+      document.getElementById('mbti-desc-display').innerHTML =
+        '<strong>优势：</strong>' + info.strengths + '<br><br>' +
+        '<strong>成长盲区：</strong>' + info.blindspots + '<br><br>' +
+        info.desc;
+
+      // 八维功能栈
+      const stackLevels = ['dominant', 'auxiliary', 'tertiary', 'inferior'];
+      const levelBadges = ['🥇 主导', '🥈 辅助', '🥉 第三', '⚠️ 劣势'];
+      let stackHtml = '<div style="display:flex;flex-direction:column;gap:12px;">';
+      stackLevels.forEach((level, i) => {
+        const funcKey = stack[level];
+        const func = cognitiveFunctions[funcKey];
+        stackHtml += '<div style="background:#F5F9FF;border-radius:8px;padding:14px;border-left:4px solid ' + (i < 2 ? 'var(--primary)' : 'var(--accent)') + ';">';
+        stackHtml += '<div style="font-weight:600;font-size:14px;">' + levelBadges[i] + '：' + func.name + '（' + func.symbol + '）</div>';
+        stackHtml += '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' + func.desc + '</div>';
+        stackHtml += '<div style="font-size:11px;margin-top:4px;"><span style="color:#66BB6A;">✓ 优势：' + func.strength + '</span></div>';
+        stackHtml += '<div style="font-size:11px;"><span style="color:#FF7043;">⚠ 注意：' + func.weakness + '</span></div>';
+        stackHtml += '</div>';
+      });
+      stackHtml += '</div>';
+      document.getElementById('mbti-stack-display').innerHTML = stackHtml;
+
+      // 八维与能力维度的映射
+      const dimFuncMap = {
+        '情绪管理': ['Fi', 'Fe'],
+        '人际沟通': ['Fe', 'Ne'],
+        '执行力与自律': ['Te', 'Si'],
+        '学习与认知': ['Ti', 'Ni'],
+        '自我认知': ['Fi', 'Ni'],
+        '创造力与审美': ['Ne', 'Se']
+      };
+      let mapHtml = '<div style="display:flex;flex-direction:column;gap:10px;">';
+      for (const [dim, funcs] of Object.entries(dimFuncMap)) {
+        const funcNames = funcs.map(f => {
+          const cf = cognitiveFunctions[f];
+          const inStack = Object.values(stack).includes(f);
+          return '<span style="font-weight:' + (inStack ? '600' : '400') + ';color:' + (inStack ? 'var(--primary)' : 'var(--text-secondary)') + ';">' + cf.name + '(' + f + ')' + (inStack ? ' ✓' : '') + '</span>';
+        }).join('、');
+        mapHtml += '<div style="padding:8px 12px;background:#FAFAFA;border-radius:6px;font-size:13px;"><strong>' + dim + '</strong> ← ' + funcNames + '</div>';
+      }
+      mapHtml += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">标注 ✓ 的功能在你的功能栈中，是本类型与生俱来的或容易发展的。</div>';
+      mapHtml += '</div>';
+      document.getElementById('mbti-dimension-map').innerHTML = mapHtml;
+    }
+
+    function saveMBTI() {
+      const select = document.getElementById('mbti-select');
+      const mbti = select.value;
+      if (!mbti) {
+        alert('请选择你的 MBTI 类型');
+        return;
+      }
+      const profile = getProfile();
+      profile.mbti = mbti;
+      setProfile(profile);
+      showMBTIInfo(mbti);
+      alert('MBTI 设置已保存！');
+    }
+
+    /* ===== AI 对话 ===== */
+    function getChatHistory() {
+      return load('aiChatHistory') || [];
+    }
+
+    function saveChatHistory(msgs) {
+      save('aiChatHistory', msgs);
+    }
+
+    function getAPIKey() {
+      return localStorage.getItem('deepseek_api_key') || '';
+    }
+
+    function toggleAPISettings() {
+      const el = document.getElementById('api-settings');
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function saveAPIKey() {
+      const key = document.getElementById('api-key-input').value.trim();
+      if (!key) { alert('请输入 API Key'); return; }
+      localStorage.setItem('deepseek_api_key', key);
+      document.getElementById('api-key-status').textContent = '✅ Key 已保存';
+      document.getElementById('api-key-input').value = '';
+    }
+
+    function renderAIPage() {
+      const key = getAPIKey();
+      document.getElementById('api-key-input').placeholder = key ? '已设置 (●●●●' + key.slice(-4) + ')' : 'sk-...';
+      document.getElementById('api-key-status').textContent = key ? '✅ 已配置' : '';
+
+      const history = getChatHistory();
+      const container = document.getElementById('ai-messages');
+      if (history.length === 0) {
+        container.innerHTML = `<div class="ai-msg assistant">
+          <div class="ai-msg-content">你好！我是你的个人成长助手 🤖<br><br>我可以帮你：<br>• 分析你的每日复盘记录，找出规律<br>• 结合你的 MBTI 荣格八维给出深度解读<br>• 针对评估弱项提供具体行动建议<br>• 回答任何关于自我成长的问题<br><br>${key ? '我已经加载了你的数据，随时可以提问！' : '请先设置你的 DeepSeek API Key（点击下方 ⚙️ 按钮）。'}</div>
+        </div>`;
+      } else {
+        let html = '';
+        history.forEach(msg => {
+          html += `<div class="ai-msg ${msg.role}"><div class="ai-msg-content">${escapeHtml(msg.content)}</div></div>`;
+        });
+        container.innerHTML = html;
+      }
+      // 滚动到底部
+      const chatBox = document.getElementById('ai-chat-container');
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Enter 发送
+      const input = document.getElementById('ai-input');
+      if (input) {
+        input.onkeydown = function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        };
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function buildSystemPrompt() {
+      const profile = getProfile();
+      const assessments = getAssessments();
+      const reviews = getReviews();
+
+      let prompt = '你是我的"个人成长教练"，基于我的数据和荣格八维心理学帮助我分析自我、提供可操作的建议。\n\n';
+
+      // MBTI + 八维
+      if (profile.mbti) {
+        const stack = mbtiStacks[profile.mbti];
+        prompt += '【MBTI类型】' + profile.mbti + ' — ' + mbtiProfiles[profile.mbti].name + '\n';
+        if (stack) {
+          const levels = ['dominant', 'auxiliary', 'tertiary', 'inferior'];
+          const levelNames = ['主导功能', '辅助功能', '第三功能', '劣势功能'];
+          prompt += '【荣格八维功能栈】\n';
+          levels.forEach((lvl, i) => {
+            const funcKey = stack[lvl];
+            const func = cognitiveFunctions[funcKey];
+            prompt += levelNames[i] + '：' + func.name + '（' + funcKey + '）— 优势：' + func.strength + '；需注意：' + func.weakness + '\n';
+          });
+        }
+        prompt += '\n';
+      }
+
+      // 评估数据
+      if (assessments.length > 0) {
+        const latest = assessments[assessments.length - 1];
+        prompt += '【最近能力评估】\n';
+        for (const dim of dimOrder) {
+          prompt += dimLabels[dim] + '：' + (latest.scores[dim] || 0) + '分\n';
+        }
+        if (assessments.length > 1) {
+          prompt += '历史评估次数：' + assessments.length + '次\n';
+          const first = assessments[0];
+          prompt += '首次评估至今变化：\n';
+          for (const dim of dimOrder) {
+            const change = (latest.scores[dim] || 0) - (first.scores[dim] || 0);
+            if (change !== 0) prompt += dimLabels[dim] + '：' + (change > 0 ? '+' : '') + change + '分\n';
+          }
+        }
+        prompt += '\n';
+      }
+
+      // 复盘数据
+      if (reviews.length > 0) {
+        prompt += '【复盘记录数】' + reviews.length + '条\n';
+        const recent = reviews.slice(-7);
+        prompt += '【最近7天复盘摘要】\n';
+        recent.forEach(r => {
+          const answered = (r.answers || []).filter(a => a.answer).map(a => '[' + a.layer + '] ' + a.answer).join('；');
+          prompt += r.date + ' 心情评分：' + (r.mood || '?') + '/5 — ' + (answered || '无记录') + '\n';
+        });
+      }
+
+      prompt += '\n请根据以上数据，以温暖而专业的语气回答用户问题。回答要具体、可操作，不要空泛的建议。如果用户问及弱项，结合荣格八维的分析给出针对性的改善方案。';
+      return prompt;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('ai-input');
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+
+      const apiKey = getAPIKey();
+      if (!apiKey) {
+        alert('请先设置 DeepSeek API Key\n\n获取方式：\n1. 打开 platform.deepseek.com\n2. 注册账号\n3. 在 API Keys 页面创建 Key\n4. 复制后粘贴到下方设置中');
+        document.getElementById('api-settings').style.display = 'block';
+        return;
+      }
+
+      // 显示用户消息
+      const history = getChatHistory();
+      history.push({ role: 'user', content: userMsg });
+      saveChatHistory(history);
+
+      input.value = '';
+      renderAIPage();
+
+      // 显示加载中
+      const container = document.getElementById('ai-messages');
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'ai-msg assistant';
+      typingDiv.id = 'ai-typing';
+      typingDiv.innerHTML = '<div class="ai-msg-content"><div class="ai-typing"><span></span><span></span><span></span></div></div>';
+      container.appendChild(typingDiv);
+      const chatBox = document.getElementById('ai-chat-container');
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const systemPrompt = buildSystemPrompt();
+        const messages = [
+          { role: 'system', content: systemPrompt },
+          ...history.slice(-20) // 最近20条
+        ];
+
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 2000
+          })
+        });
+
+        // 移除加载动画
+        const typing = document.getElementById('ai-typing');
+        if (typing) typing.remove();
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error?.message || 'API 请求失败 (' + response.status + ')');
+        }
+
+        const data = await response.json();
+        const reply = data.choices[0].message.content;
+
+        history.push({ role: 'assistant', content: reply });
+        saveChatHistory(history);
+        renderAIPage();
+
+      } catch (err) {
+        const typing = document.getElementById('ai-typing');
+        if (typing) typing.remove();
+        const errMsg = '❌ 出错了：' + err.message + '\n\n请检查：\n• API Key 是否正确\n• 网络是否通畅\n• DeepSeek 账户是否有余额';
+        history.push({ role: 'assistant', content: errMsg });
+        saveChatHistory(history);
+        renderAIPage();
+      }
+    }
+
+    function quickPrompt(msg) {
+      if (msg) {
+        document.getElementById('ai-input').value = msg;
+      } else {
+        document.getElementById('ai-input').value = '';
+      }
+      document.getElementById('ai-input').focus();
+    }
+
+    function clearChat() {
+      if (confirm('确定要清空所有对话记录吗？')) {
+        save('aiChatHistory', []);
+        renderAIPage();
+      }
+    }
+
+    function getWeakestDim() {
+      const assessments = getAssessments();
+      if (assessments.length === 0) return null;
+      const latest = assessments[assessments.length - 1];
+      let minDim = dimOrder[0];
+      let minScore = latest.scores[minDim] || 0;
+      dimOrder.forEach(d => {
+        if ((latest.scores[d] || 0) < minScore) { minScore = latest.scores[d] || 0; minDim = d; }
+      });
+      return minDim;
+    }
+
+    /* ===== 页面初始化 ===== */
+    function init() {
+      showPage('dashboard');
+      renderDashboard();
+
+      // 预渲染 MBTI 页面的选项
+      const select = document.getElementById('mbti-select');
+      Object.keys(mbtiProfiles).forEach(type => {
+        const opt = document.createElement('option');
+        opt.value = type;
+        opt.textContent = type + ' — ' + mbtiProfiles[type].name;
+        select.appendChild(opt);
+      });
+      const profile = getProfile();
+      if (profile.mbti) {
+        select.value = profile.mbti;
+        showMBTIInfo(profile.mbti);
+      }
+    }
+
+    // 启动
+    init();
+
+    // 注册 Service Worker（PWA 离线支持）
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

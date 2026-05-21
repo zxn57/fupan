@@ -1,0 +1,18 @@
+{
+  "name": "自我评估复盘系统",
+  "short_name": "复盘系统",
+  "description": "了解自己 · 改变自己 — 结合荣格八维与AI的个人成长追踪工具",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E8F4FD",
+  "theme_color": "#1565C0",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
