@@ -26,13 +26,13 @@ jobs:
           cd android
           gradle wrapper --gradle-version 8.5
 
-      - name: Build Release APK
+      - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: 自我评估复盘-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/debug/*.apk
