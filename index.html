@@ -609,8 +609,8 @@
         <div class="card-subtitle">定期备份数据，或在不同设备之间迁移</div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="exportData()">📤 导出全部数据</button>
-          <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 导入数据</button>
-          <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none;">
+          <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="position:absolute;width:0;height:0;opacity:0;">
+          <button class="btn btn-secondary" onclick="triggerImport()">📥 导入数据</button>
         </div>
         <div id="import-status" style="font-size:12px;color:var(--text-secondary);margin-top:8px;"></div>
       </div>
@@ -930,6 +930,34 @@
       URL.revokeObjectURL(url);
 
       showImportStatus('✅ 数据已导出！文件：复盘系统备份_' + today() + '.json');
+    }
+
+    function triggerImport() {
+      // Android WebView 兼容：动态创建可见的 file input
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.style.position = 'fixed';
+      input.style.top = '0';
+      input.style.left = '0';
+      input.style.width = '100%';
+      input.style.height = '100%';
+      input.style.opacity = '0';
+      input.style.zIndex = '9999';
+      input.onchange = function(e) {
+        importData(e);
+        document.body.removeChild(input);
+      };
+      // 用户取消选择也要清理
+      input.oncancel = function() { document.body.removeChild(input); };
+      // 备用清理：失去焦点时移除
+      setTimeout(function() {
+        if (input.parentNode && !input.files.length) {
+          document.body.removeChild(input);
+        }
+      }, 300000);
+      document.body.appendChild(input);
+      input.click();
     }
 
     function importData(event) {
