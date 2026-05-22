@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 头部轮廓 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 C38.5,20 26,32.5 26,48 C26,60 32,69 38,75 L38,82 C38,85 41,88 44,88 L64,88 C67,88 70,85 70,82 L70,75 C76,69 82,60 82,48 C82,32.5 69.5,20 54,20 Z"/>
+
+    <!-- 左脑回路 -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M42,38 Q46,34 48,38 Q50,42 46,44 Q42,46 44,50 Q46,54 42,54"
+        android:strokeWidth="2.5"
+        android:strokeColor="#1565C0"
+        android:fillColor="@android:color/transparent"/>
+
+    <!-- 右脑回路 -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M60,38 Q64,34 62,38 Q60,42 64,44 Q66,46 62,50 Q58,54 62,54"
+        android:strokeWidth="2.5"
+        android:strokeColor="#1565C0"
+        android:fillColor="@android:color/transparent"/>
+
+    <!-- 眉心光点 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,56 L54,52 L56,56 L54,60 Z"/>
+
+    <!-- 底部横条 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,70 L64,70 L64,74 L44,74 Z"/>
+
+</vector>
