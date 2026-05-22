@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fupan-v2';
+const CACHE_NAME = 'fupan-v3';
 const ASSETS = [
   '.',
   'index.html',
