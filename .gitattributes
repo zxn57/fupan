@@ -1,0 +1,5 @@
+*.xml text eol=lf
+*.kts text eol=lf
+*.gradle text eol=lf
+*.java text eol=lf
+*.properties text eol=lf
