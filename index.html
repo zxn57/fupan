@@ -609,9 +609,8 @@
         <div class="card-subtitle">定期备份数据，或在不同设备之间迁移</div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="exportData()">📤 导出全部数据</button>
-          <label class="btn btn-secondary" style="cursor:pointer;margin:0;">📥 导入数据
-            <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none;">
-          </label>
+          <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 导入数据</button>
+          <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none;">
         </div>
         <div id="import-status" style="font-size:12px;color:var(--text-secondary);margin-top:8px;"></div>
       </div>
