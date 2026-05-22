@@ -12,14 +12,14 @@
 
     <!-- 左脑回路（仅描边） -->
     <path
-        android:fillColor="@android:color/transparent"
+        android:fillColor="#00000000"
         android:strokeWidth="2.5"
         android:strokeColor="#1565C0"
         android:pathData="M42,38 Q46,34 48,38 Q50,42 46,44 Q42,46 44,50 Q46,54 42,54"/>
 
     <!-- 右脑回路（仅描边） -->
     <path
-        android:fillColor="@android:color/transparent"
+        android:fillColor="#00000000"
         android:strokeWidth="2.5"
         android:strokeColor="#1565C0"
         android:pathData="M60,38 Q64,34 62,38 Q60,42 64,44 Q66,46 62,50 Q58,54 62,54"/>
