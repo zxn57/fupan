@@ -1637,17 +1637,41 @@
 
       const sorted = [...reviews].reverse();
       let html = '';
-      sorted.forEach(r => {
+      sorted.forEach((r, idx) => {
         const answeredCount = (r.answers || []).filter(a => a.answer).length;
-        const preview = (r.answers || []).find(a => a.answer)?.answer || '';
-        html += '<div class="history-item">';
-        html += '<div>';
-        html += '<div class="history-date">' + fmtDate(r.date) + ' 😊' + (r.mood || '?') + '</div>';
-        html += '<div style="font-size:12px;color:var(--text-secondary);">回答了 ' + answeredCount + '/' + reviewQuestions.length + ' 个问题</div>';
-        html += '<div style="font-size:12px;color:var(--text-secondary);">' + preview.slice(0, 50) + (preview.length > 50 ? '...' : '') + '</div>';
+        const firstAnswer = (r.answers || []).find(a => a.answer);
+        const preview = firstAnswer ? firstAnswer.answer.slice(0, 50) : '';
+        const detailId = 'review-detail-' + idx;
+
+        html += '<div class="history-item" style="cursor:pointer;" onclick="toggleReviewDetail(\'' + detailId + '\')">';
+        html += '<div style="flex:1;">';
+        html += '<div class="history-date">' + fmtDate(r.date) + ' 😊' + (r.mood || '?') + ' <span style="font-size:11px;color:var(--text-secondary);">回答了' + answeredCount + '/' + reviewQuestions.length + '题</span></div>';
+        if (preview) {
+          html += '<div style="font-size:12px;color:var(--text-secondary);">' + preview + (firstAnswer.answer.length > 50 ? '...' : '') + '</div>';
+        }
+        html += '<div style="font-size:11px;color:var(--primary);margin-top:2px;">▶ 点击查看详情</div>';
         html += '</div></div>';
+
+        // 展开详情（默认隐藏）
+        html += '<div id="' + detailId + '" style="display:none;background:#F8FAFB;border-radius:8px;padding:12px;margin-bottom:12px;">';
+        (r.answers || []).forEach(a => {
+          if (a.answer) {
+            html += '<div style="margin-bottom:8px;">';
+            html += '<div style="font-size:11px;color:var(--primary);font-weight:500;">' + a.layer + '层：' + a.question + '</div>';
+            html += '<div style="font-size:13px;margin-top:2px;">' + a.answer + '</div>';
+            html += '</div>';
+          }
+        });
+        html += '</div>';
       });
       container.innerHTML = html;
+    }
+
+    function toggleReviewDetail(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+      }
     }
 
     /* ===== 数据图表 ===== */
@@ -1856,6 +1880,9 @@
     }
 
     function getAPIKey() {
+      // 优先从 profile 读取，兼容旧版单独存储的 key
+      const profile = getProfile();
+      if (profile.apiKey) return profile.apiKey;
       return localStorage.getItem('deepseek_api_key') || '';
     }
 
@@ -1867,15 +1894,25 @@
     function saveAPIKey() {
       const key = document.getElementById('api-key-input').value.trim();
       if (!key) { alert('请输入 API Key'); return; }
-      localStorage.setItem('deepseek_api_key', key);
+      const profile = getProfile();
+      profile.apiKey = key;
+      setProfile(profile);
+      localStorage.setItem('deepseek_api_key', key); // 兼容旧逻辑
+      document.getElementById('api-key-input').value = key.replace(/./g, '•'); // 保留掩码显示
       document.getElementById('api-key-status').textContent = '✅ Key 已保存';
-      document.getElementById('api-key-input').value = '';
     }
 
     function renderAIPage() {
       const key = getAPIKey();
-      document.getElementById('api-key-input').placeholder = key ? '已设置 (●●●●' + key.slice(-4) + ')' : 'sk-...';
-      document.getElementById('api-key-status').textContent = key ? '✅ 已配置' : '';
+      if (key) {
+        // 输入框显示掩码，表示已保存
+        document.getElementById('api-key-input').value = key.slice(0, 3) + '••••' + key.slice(-4);
+        document.getElementById('api-key-status').textContent = '✅ 已配置';
+      } else {
+        document.getElementById('api-key-input').value = '';
+        document.getElementById('api-key-status').textContent = '';
+      }
+      document.getElementById('api-key-input').placeholder = 'sk-...';
 
       const history = getChatHistory();
       const container = document.getElementById('ai-messages');
