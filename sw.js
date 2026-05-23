@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fupan-v4';
+const CACHE_NAME = 'fupan-v5';
 
 // 安装
 self.addEventListener('install', event => {
