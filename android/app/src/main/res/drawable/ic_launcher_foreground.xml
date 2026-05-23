@@ -5,24 +5,43 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 头部圆圈 -->
+    <!-- 左上翅 -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,24 C40,24 28,36 28,50 C28,62.5 36.3,71 45,74 L45,80 C45,83 47,86 50,86 L58,86 C61,86 63,83 63,80 L63,74 C71.7,71 80,62.5 80,50 C80,36 68,24 54,24 Z"/>
+        android:pathData="M54,54 C48,40 34,28 24,26 C30,32 32,42 38,50 C42,54 48,54 54,54 Z"/>
 
-    <!-- 大脑中心竖线 -->
+    <!-- 右上翅 -->
     <path
-        android:fillColor="#1565C0"
-        android:pathData="M52,42 L52,58 L56,58 L56,42 Z"/>
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54 C60,40 74,28 84,26 C78,32 76,42 70,50 C66,54 60,54 54,54 Z"/>
 
-    <!-- 左弧 -->
+    <!-- 左下翅 -->
     <path
-        android:fillColor="#1565C0"
-        android:pathData="M44,42 C40,44 40,56 44,58 C44,52 44,48 44,42 Z"/>
+        android:fillColor="#BBDEFB"
+        android:pathData="M54,54 C48,60 38,72 32,80 C38,74 46,66 54,60 C52,58 54,54 54,54 Z"/>
 
-    <!-- 右弧 -->
+    <!-- 右下翅 -->
     <path
-        android:fillColor="#1565C0"
-        android:pathData="M64,42 C68,44 68,56 64,58 C64,52 64,48 64,42 Z"/>
+        android:fillColor="#BBDEFB"
+        android:pathData="M54,54 C60,60 70,72 76,80 C70,74 62,66 54,60 C56,58 54,54 54,54 Z"/>
+
+    <!-- 身体 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,38 C51,40 51,66 52,80 C53,82 55,82 56,80 C57,66 57,40 56,38 Z"/>
+
+    <!-- 左触角 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF"
+        android:pathData="M53,38 C48,30 44,26 40,24"/>
+
+    <!-- 右触角 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF"
+        android:pathData="M55,38 C60,30 64,26 68,24"/>
 
 </vector>
