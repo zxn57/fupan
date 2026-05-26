@@ -928,18 +928,27 @@
       };
 
       const json = JSON.stringify(allData, null, 2);
+      const fileName = '复盘系统备份_' + today() + '.json';
+
+      // APP 内：通过原生桥直接保存到下载目录
+      if (typeof AndroidBridge !== 'undefined' && AndroidBridge.saveFile) {
+        AndroidBridge.saveFile(fileName, json);
+        showImportStatus('✅ 数据已导出到手机下载目录：' + fileName);
+        return;
+      }
+
+      // 浏览器：触发下载
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement('a');
       a.href = url;
-      a.download = '复盘系统备份_' + today() + '.json';
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showImportStatus('✅ 数据已导出！文件：复盘系统备份_' + today() + '.json');
+      showImportStatus('✅ 数据已导出！文件：' + fileName);
     }
 
     function triggerImport() {
