@@ -613,10 +613,8 @@
         <div class="card-subtitle">定期备份数据，或在不同设备之间迁移</div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="exportData()">📤 导出全部数据</button>
-          <div style="position:relative;display:inline-block;">
-            <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;z-index:2;cursor:pointer;">
-            <button class="btn btn-secondary" style="pointer-events:none;">📥 导入数据</button>
-          </div>
+          <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="btn btn-secondary" style="display:inline-block;width:auto;font-size:14px;font-family:inherit;">
+          <span style="font-size:11px;color:var(--text-secondary);">📥 选择备份文件</span>
         </div>
         <div id="import-status" style="font-size:12px;color:var(--text-secondary);margin-top:8px;"></div>
       </div>
@@ -707,6 +705,10 @@
         <div class="form-group" style="margin-top:16px;">
           <label class="form-label">😊 今天整体心情评分（1-5）</label>
           <div class="star-rating" id="rating-mood"></div>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">📝 还有什么想说的（自由记录）</label>
+          <textarea class="form-textarea" id="review-free" placeholder="写任何你想记录的..."></textarea>
         </div>
         <button class="btn btn-primary btn-block" onclick="submitReview()">保存复盘</button>
       </div>
@@ -1577,6 +1579,7 @@
             if (ta) ta.value = a.answer || '';
           });
         }
+        if (todayReview.free) document.getElementById('review-free').value = todayReview.free;
       } else {
         document.querySelectorAll('.review-answer').forEach(ta => ta.value = '');
         document.querySelectorAll('#rating-mood .star-btn').forEach(b => b.classList.remove('selected'));
@@ -1616,11 +1619,14 @@
       const reviews = getReviews();
       const existingIdx = reviews.findIndex(r => r.date === today());
 
+      const freeText = document.getElementById('review-free').value.trim();
+
       const review = {
         id: existingIdx >= 0 ? reviews[existingIdx].id : genId(),
         date: today(),
         mood: mood,
-        answers: answers
+        answers: answers,
+        free: freeText
       };
 
       if (existingIdx >= 0) {
@@ -1671,6 +1677,12 @@
             html += '</div>';
           }
         });
+        if (r.free) {
+          html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #E8E8E8;">';
+          html += '<div style="font-size:11px;color:var(--accent);font-weight:500;">📝 自由记录</div>';
+          html += '<div style="font-size:13px;margin-top:2px;">' + r.free + '</div>';
+          html += '</div>';
+        }
         html += '</div>';
       });
       container.innerHTML = html;
@@ -2050,13 +2062,12 @@
           ...history.slice(-20) // 最近20条
         ];
 
-        const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        headers.append('Authorization', 'Bearer ' + apiKey);
-
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
           method: 'POST',
-          headers: headers,
+          headers: [
+            ['Content-Type', 'application/json'],
+            ['Authorization', 'Bearer ' + apiKey]
+          ],
           body: JSON.stringify({
             model: 'deepseek-chat',
             messages: messages,
