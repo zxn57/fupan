@@ -2071,6 +2071,40 @@
           ...history.slice(-20)
         ];
 
+        const requestBody = JSON.stringify({
+          model: 'deepseek-chat',
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 2000
+        });
+
+        // APP 内：通过原生桥发起请求（无跨域限制）
+        if (typeof AndroidBridge !== 'undefined' && AndroidBridge.callAPI) {
+          const result = AndroidBridge.callAPI(
+            'https://api.deepseek.com/v1/chat/completions',
+            'POST',
+            requestBody,
+            'Bearer ' + apiKey
+          );
+          const typing = document.getElementById('ai-typing');
+          if (typing) typing.remove();
+
+          const sepIdx = result.indexOf('::');
+          const status = parseInt(result.substring(0, sepIdx));
+          const respStr = result.substring(sepIdx + 2);
+
+          if (status >= 200 && status < 300) {
+            const data = JSON.parse(respStr);
+            history.push({ role: 'assistant', content: data.choices[0].message.content });
+          } else {
+            history.push({ role: 'assistant', content: '❌ ' + respStr });
+          }
+          saveChatHistory(history);
+          renderAIPage();
+          return;
+        }
+
+        // 浏览器：XMLHttpRequest
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'https://api.deepseek.com/v1/chat/completions', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -2080,54 +2114,35 @@
         xhr.onload = function() {
           const typing = document.getElementById('ai-typing');
           if (typing) typing.remove();
-
           if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const data = JSON.parse(xhr.responseText);
-              const reply = data.choices[0].message.content;
-              history.push({ role: 'assistant', content: reply });
-            } catch(e) {
-              history.push({ role: 'assistant', content: '❌ 解析回复时出错' });
-            }
+            const data = JSON.parse(xhr.responseText);
+            history.push({ role: 'assistant', content: data.choices[0].message.content });
           } else {
-            let errMsg = '❌ API 请求失败 (' + xhr.status + ')';
-            try {
-              const errData = JSON.parse(xhr.responseText);
-              errMsg = '❌ ' + (errData.error?.message || errMsg);
-            } catch(e) {}
-            history.push({ role: 'assistant', content: errMsg + '\n\n请检查 API Key 和网络' });
+            history.push({ role: 'assistant', content: '❌ API 请求失败 (' + xhr.status + ')' });
           }
           saveChatHistory(history);
           renderAIPage();
         };
-
         xhr.onerror = function() {
           const typing = document.getElementById('ai-typing');
           if (typing) typing.remove();
-          history.push({ role: 'assistant', content: '❌ 网络请求失败\n\n请检查：\n• 网络是否通畅\n• API Key 是否正确\n• DeepSeek 账户是否有余额' });
+          history.push({ role: 'assistant', content: '❌ 网络请求失败' });
           saveChatHistory(history);
           renderAIPage();
         };
-
         xhr.ontimeout = function() {
           const typing = document.getElementById('ai-typing');
           if (typing) typing.remove();
-          history.push({ role: 'assistant', content: '❌ 请求超时，请稍后重试' });
+          history.push({ role: 'assistant', content: '❌ 请求超时' });
           saveChatHistory(history);
           renderAIPage();
         };
-
-        xhr.send(JSON.stringify({
-          model: 'deepseek-chat',
-          messages: messages,
-          temperature: 0.7,
-          max_tokens: 2000
-        }));
+        xhr.send(requestBody);
 
       } catch (err) {
         const typing = document.getElementById('ai-typing');
         if (typing) typing.remove();
-        history.push({ role: 'assistant', content: '❌ 出错了：' + err.message });
+        history.push({ role: 'assistant', content: '❌ ' + err.message });
         saveChatHistory(history);
         renderAIPage();
       }

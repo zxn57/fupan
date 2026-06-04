@@ -16,6 +16,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,15 +54,12 @@ public class MainActivity extends AppCompatActivity {
             @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @Override
             public boolean onShowFileChooser(WebView wv, ValueCallback<Uri[]> callback, FileChooserParams params) {
-                if (filePathCallback != null) {
-                    filePathCallback.onReceiveValue(null);
-                }
+                if (filePathCallback != null) filePathCallback.onReceiveValue(null);
                 filePathCallback = callback;
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("*/*");
-                Intent chooser = Intent.createChooser(intent, "选择文件");
-                startActivityForResult(chooser, FILE_CHOOSER_REQUEST);
+                startActivityForResult(Intent.createChooser(intent, "选择文件"), FILE_CHOOSER_REQUEST);
                 return true;
             }
         });
@@ -65,9 +67,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(url));
-                startActivity(intent);
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
             }
         });
 
@@ -88,23 +88,50 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "导出失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
+
+        @android.webkit.JavascriptInterface
+        public String callAPI(String apiUrl, String method, String body, String authHeader) {
+            try {
+                URL url = new URL(apiUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod(method);
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setRequestProperty("Authorization", authHeader);
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(30000);
+                conn.setReadTimeout(60000);
+
+                if (body != null && !body.isEmpty()) {
+                    OutputStream os = conn.getOutputStream();
+                    os.write(body.getBytes("UTF-8"));
+                    os.close();
+                }
+
+                int status = conn.getResponseCode();
+                InputStream is = (status >= 200 && status < 300) ? conn.getInputStream() : conn.getErrorStream();
+                String respStr = "";
+                if (is != null) {
+                    Scanner s = new Scanner(is).useDelimiter("\\A");
+                    respStr = s.hasNext() ? s.next() : "";
+                }
+                conn.disconnect();
+                return status + "::" + respStr;
+            } catch (Exception e) {
+                return "0::" + e.getMessage();
+            }
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_CHOOSER_REQUEST) {
-            if (filePathCallback != null) {
-                Uri[] results = null;
-                if (resultCode == RESULT_OK && data != null) {
-                    Uri uri = data.getData();
-                    if (uri != null) {
-                        results = new Uri[]{uri};
-                    }
-                }
-                filePathCallback.onReceiveValue(results);
-                filePathCallback = null;
+        if (requestCode == FILE_CHOOSER_REQUEST && filePathCallback != null) {
+            Uri[] results = null;
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                results = new Uri[]{data.getData()};
             }
+            filePathCallback.onReceiveValue(results);
+            filePathCallback = null;
         }
     }
 
